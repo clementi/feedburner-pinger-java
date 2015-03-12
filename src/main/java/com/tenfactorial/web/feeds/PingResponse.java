@@ -1,4 +1,4 @@
-package com.metronomix.web.feeds;
+package com.tenfactorial.web.feeds;
 
 public class PingResponse {
     private final PingStatus status;

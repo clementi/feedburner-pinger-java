@@ -1,4 +1,4 @@
-package com.metronomix.web.feeds;
+package com.tenfactorial.web.feeds;
 
 import com.google.gson.stream.JsonReader;
 import org.apache.http.HttpResponse;

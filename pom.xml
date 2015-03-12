@@ -21,8 +21,6 @@
         </license>
     </licenses>
 
-<!--    <scm>http://github.com/clementi/feedburner-pinger-java</scm>-->
-
     <dependencies>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>

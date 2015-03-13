@@ -6,7 +6,7 @@
 
     <groupId>com.tenfactorial.web.feeds</groupId>
     <artifactId>feedburner-pinger</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>FeedBurner Ping Client</name>

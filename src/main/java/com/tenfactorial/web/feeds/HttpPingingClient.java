@@ -17,6 +17,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class HttpPingingClient implements PingingClient {
+    public static final String STATUS_FIELD_NAME = "status";
+    public static final String MESSAGE_FIELD_NAME = "message";
+    public static final String URL_PARAMETER_NAME = "url";
     private final HttpClient httpClient;
     private static final String ENDPOINT_URL = "http://feedburner-pinger.herokuapp.com/";
 
@@ -35,7 +38,7 @@ public class HttpPingingClient implements PingingClient {
         HttpPost post = new HttpPost(ENDPOINT_URL);
 
         List<NameValuePair> params = new LinkedList<>();
-        params.add(new BasicNameValuePair("url", url));
+        params.add(new BasicNameValuePair(URL_PARAMETER_NAME, url));
 
         post.setEntity(new UrlEncodedFormEntity(params));
 
@@ -58,9 +61,9 @@ public class HttpPingingClient implements PingingClient {
 
         while (reader.hasNext()) {
             String name = reader.nextName();
-            if (name.equals("status")) {
+            if (name.equals(STATUS_FIELD_NAME)) {
                 status = PingStatus.valueOf(reader.nextString());
-            } else if (name.equals("message")) {
+            } else if (name.equals(MESSAGE_FIELD_NAME)) {
                 message = reader.nextString();
             }
         }

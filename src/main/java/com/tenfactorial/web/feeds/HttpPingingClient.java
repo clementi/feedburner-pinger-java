@@ -1,75 +1,44 @@
 package com.tenfactorial.web.feeds;
 
-import com.google.gson.stream.JsonReader;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import okhttp3.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.LinkedList;
-import java.util.List;
 
 public class HttpPingingClient implements PingingClient {
-    public static final String STATUS_FIELD_NAME = "status";
-    public static final String MESSAGE_FIELD_NAME = "message";
-    public static final String URL_PARAMETER_NAME = "url";
-    private final HttpClient httpClient;
-    private static final String ENDPOINT_URL = "http://feedburner-pinger.herokuapp.com/";
+    private final OkHttpClient client;
+    private static final String URL_PARAMETER_NAME = "url";
+    private static final String ENDPOINT_URL = "http://feedburner-pinger.herokuapp.com";
 
-    public HttpPingingClient(HttpClient httpClient) {
-        this.httpClient = httpClient;
+    public HttpPingingClient(OkHttpClient client) {
+        this.client = client;
     }
 
     public HttpPingingClient() {
-        this(HttpClients.createMinimal());
+        this(new OkHttpClient());
     }
 
-    @Override
     public PingResponse ping(PingRequest request) throws IOException {
         String url = request.getUrl();
 
-        HttpPost post = new HttpPost(ENDPOINT_URL);
+        RequestBody formBody = new FormBody.Builder()
+                .add(URL_PARAMETER_NAME, url)
+                .build();
 
-        List<NameValuePair> params = new LinkedList<>();
-        params.add(new BasicNameValuePair(URL_PARAMETER_NAME, url));
+        Request req = new Request.Builder()
+                .url(ENDPOINT_URL)
+                .post(formBody)
+                .build();
 
-        post.setEntity(new UrlEncodedFormEntity(params));
-
-        HttpResponse response = this.httpClient.execute(post);
-
-        return this.getResponse(response.getEntity().getContent());
-    }
-
-    private PingResponse getResponse(InputStream input) throws IOException {
-        try (JsonReader reader = new JsonReader(new BufferedReader(new InputStreamReader(input)))) {
-            return this.readResponse(reader);
-        }
-    }
-
-    private PingResponse readResponse(JsonReader reader) throws IOException {
-        PingStatus status = PingStatus.FAILED;
-        String message = null;
-
-        reader.beginObject();
-
-        while (reader.hasNext()) {
-            String name = reader.nextName();
-            if (name.equals(STATUS_FIELD_NAME)) {
-                status = PingStatus.valueOf(reader.nextString());
-            } else if (name.equals(MESSAGE_FIELD_NAME)) {
-                message = reader.nextString();
-            }
+        Response resp = client.newCall(req).execute();
+        if (!resp.isSuccessful()) {
+            throw new IOException(resp.toString());
         }
 
-        reader.endObject();
+        GsonBuilder gsonBuilder = new GsonBuilder();
+        Gson gson = gsonBuilder.create();
 
-        return new PingResponse(status, message);
+        return gson.fromJson(resp.body().charStream(), PingResponse.class);
     }
 }
